@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 
-const recordingSchema = new mongoose.Schema({
+const pdfSchema = new mongoose.Schema({
     name: {
         required: true,
         type: String
@@ -9,15 +9,15 @@ const recordingSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
     },
-    audioLength: {
+    numpages: {
         required: true,
         type: Number
     },
-    audioUrl: {
+    pdfUrl: {
         required: true,
         type: String
     },
-    isTranscritonCreated: {
+    isVectorDatabaseCreated: {
         type: Boolean,
         default: false
     },
@@ -25,23 +25,10 @@ const recordingSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    transcriptionData: {
-        text: {
-            type: String,
-            default: null
-        },
-        chunks: [{
-            text: {
-                type: String,
-                required: true,
-            },
-            timestamp: [Number]
-        }],
-    },
     summaryText: {
         type: String,
         default: null
     }
 })
 
-export default mongoose.model('recording', recordingSchema)
+export default mongoose.model('pdf', pdfSchema)

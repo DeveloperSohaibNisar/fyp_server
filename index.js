@@ -1,12 +1,23 @@
 'use strict'
 
-import { Router } from 'express';
-import express from 'express';
+import express, { Router } from 'express';
 import mongoose from 'mongoose';
 import 'dotenv/config';
 
-import { uploadAudio, createTranscription, createSummary, getAllAudio } from "./handler/audio.js";
-import handleSingleUploadFile from './utils/upload.js';
+import {
+    uploadAudio, createTranscription,
+    // createSummary, getAllAudio
+} from "./handler/audio.js";
+import { login, signup } from "./handler/auth.js";
+import { editProfile } from "./handler/user.js";
+import { create_llm } from "./util/llm_chains.js";
+import { uploadPdf,createVectorDb } from "./handler/pdf.js";
+
+import handleSingleUploadAudio from './middleware/uploadAudio.js';
+import handleSingleUploadImage from './middleware/uploadImage.js';
+import handleSingleUploadPdf from './middleware/uploadPdf.js';
+import handleAudioConversion from './middleware/convertAudio.js';
+import handleVarifyAuth from './middleware/auth.js';
 
 const app = express();
 app.use(express.json());
@@ -14,15 +25,31 @@ app.use(express.static('public'))
 
 const router = Router();
 
-router.get('/hello', (req, res) => {
-    res.send('Hello World!')
-})
-router.post('/audio', handleSingleUploadFile, uploadAudio);
-router.post('/transcription/:audioId', createTranscription);
-router.post('/summary/:audioId', createSummary);
-router.get('/audio/:page', getAllAudio);
+// auth
+router.post("/signup", signup);
+router.post("/login", login);
 
-const mongoString = process.env.ATLAS_URI || ""
+// user
+router.post("/user/editProfile", handleVarifyAuth, handleSingleUploadImage, editProfile);
+
+// pdf
+router.post("/pdf", handleSingleUploadPdf, uploadPdf);
+router.post("/vectordb/:pdfId", handleSingleUploadPdf, createVectorDb);
+
+// audio
+router.post('/audio', handleSingleUploadAudio, handleAudioConversion, uploadAudio);
+router.post('/transcription/:audioId', createTranscription);
+// router.post('/summary/:audioId', createSummary);
+// router.get('/audio/:page', getAllAudio);
+
+// llm
+router.get('/llm', async (req, res) => {
+    console.log('helooooooooooooooooooo');
+    await create_llm();
+    res.send('done')
+});
+
+const mongoString = process.env.MONGODB_ATLAS_URI || ""
 mongoose.connect(mongoString);
 const db = mongoose.connection;
 db.on('error', (error) => {
