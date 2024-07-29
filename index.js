@@ -11,7 +11,7 @@ import {
 } from "./handler/audio.js";
 import { login, signup } from "./handler/auth.js";
 import { editProfile } from "./handler/user.js";
-import { create_llm } from "./util/llm_chains.js";
+// import { create_llm } from "./util/llm_chains.js";
 import { uploadPdf, createVectorDb, chatbot } from "./handler/pdf.js";
 
 import handleSingleUploadAudio from "./middleware/uploadAudio.js";
@@ -44,12 +44,12 @@ router.post("/transcription/:audioId", createTranscription);
 // router.post('/summary/:audioId', createSummary);
 // router.get('/audio/:page', getAllAudio);
 
-// llm
-router.get("/llm", async (req, res) => {
-    console.log("helooooooooooooooooooo");
-    await create_llm();
-    res.send("done");
-});
+// // llm
+// router.get("/llm", async (req, res) => {
+//     console.log("helooooooooooooooooooo");
+//     await create_llm();
+//     res.send("done");
+// });
 
 const mongoString = process.env.MONGODB_ATLAS_URI || "";
 mongoose.connect(mongoString);
