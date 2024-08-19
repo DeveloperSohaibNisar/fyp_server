@@ -1,4 +1,5 @@
-import 'package:fyp_application/models/transcription_item.dart';
+
+import 'transcription_item.dart';
 
 class TranscriptionClass {
   final int id;

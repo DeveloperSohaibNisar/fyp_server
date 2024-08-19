@@ -5,46 +5,49 @@ import { validateSignupData, validateLoginData } from "../util/validation.js";
 import UserSchema from "../models/user.js";
 
 export const signup = async (req, res) => {
-    try {
-        const data = {
-            email: req.body.email,
-            password: req.body.password,
-            confirmPassword: req.body.confirmPassword,
-            name: req.body.name
-        };
+  try {
+    const data = {
+      email: req.body.email,
+      password: req.body.password,
+      confirmPassword: req.body.confirmPassword,
+      name: req.body.name,
+    };
 
-        const { errors, valid } = validateSignupData(data);
-        if (!valid) return res.status(400).json(errors);
+    const { errors, valid } = validateSignupData(data);
+    if (!valid) return res.status(400).json(errors);
 
-        const existingUser = await UserSchema.exists({ email: data.email });
-        if (existingUser) {
-            return res.status(400).json({ error: "User with same email already exists! " });
-        }
-
-        const hashedPassword = await bcryptjs.hash(data.password, 8);
-        const newUser = new UserSchema({
-            name: data.name,
-            email: data.email,
-            password: hashedPassword
-        });
-
-        const user = await newUser.save();
-
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        // sending token and doc of that user NOTE: don't send all users data
-        return res.status(201).json({ token });
-    } catch (err) {
-        if (err.message) {
-            return res.status(500).json({ error: err.message });
-        }
-        return res.status(500).json({ error: err });
+    const existingUser = await UserSchema.exists({ email: data.email });
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ message: "User with same email already exists! " });
     }
-}
+
+    const hashedPassword = await bcryptjs.hash(data.password, 8);
+    const newUser = new UserSchema({
+      name: data.name,
+      email: data.email,
+      password: hashedPassword,
+    });
+
+    const user = await newUser.save();
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    // sending token and doc of that user NOTE: don't send all users data
+    return res.status(201).json({ token });
+  } catch (err) {
+    if (err.message) {
+      return res.status(500).json({ message: err.message });
+    }
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 export const login = async (req, res) => {
+  try {
     const data = {
-        email: req.body.email,
-        password: req.body.password,
+      email: req.body.email,
+      password: req.body.password,
     };
 
     const { errors, valid } = validateLoginData(data);
@@ -53,7 +56,7 @@ export const login = async (req, res) => {
     const user = await UserSchema.findOne({ email: data.email });
 
     if (!user) {
-        return res.status(404).json({ error: "user not found " });
+      return res.status(404).json({ message: "user not found " });
     }
 
     // check password typed in matchs with one in database
@@ -62,10 +65,16 @@ export const login = async (req, res) => {
     const isMatch = await bcryptjs.compare(data.password, user.password);
 
     if (!isMatch) {
-        return res.status(400).json({ error: "Incorrect Password" });
+      return res.status(401).json({ message: "wrong credentials" });
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     // sending token and doc of that user NOTE: don't send all users data
     return res.status(202).json({ token });
-}
+  } catch (err) {
+    if (err.message) {
+      return res.status(500).json({ message: err.message });
+    }
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};

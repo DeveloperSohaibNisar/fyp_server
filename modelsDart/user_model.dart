@@ -1,5 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-
 class UsersList {
   final int uid;
   final String userName;
@@ -10,15 +8,13 @@ class UsersList {
 
   UsersList(
       {required this.uid,
-        required this.userName,
-        required this.creationDate,
-        required this.password,
-        required this.isGuest,
-        required this.email});
+      required this.userName,
+      required this.creationDate,
+      required this.password,
+      required this.isGuest,
+      required this.email});
 }
 
-
-class Users{
-
-  List<UsersList> UsersData =[  ];
+class Users {
+  List<UsersList> UsersData = [];
 }

@@ -4,15 +4,17 @@ import express, { Router } from "express";
 import mongoose from "mongoose";
 import "dotenv/config";
 
-import {
-    uploadAudio,
-    createTranscription,
-    // createSummary, getAllAudio
-} from "./handler/audio.js";
 import { login, signup } from "./handler/auth.js";
-import { editProfile } from "./handler/user.js";
-// import { create_llm } from "./util/llm_chains.js";
-import { uploadPdf, createVectorDb, chatbot } from "./handler/pdf.js";
+import { editProfile, getUserData } from "./handler/user.js";
+import {
+  uploadAudio,
+  createTranscription,
+  getAllAudio,
+  createAudioVectorDb,
+  // createSummary,
+} from "./handler/audio.js";
+import { uploadPdf, createPdfVectorDb, getAllPdf } from "./handler/pdf.js";
+import { chatBot, getChat } from "./handler/chat.js";
 
 import handleSingleUploadAudio from "./middleware/uploadAudio.js";
 import handleSingleUploadImage from "./middleware/uploadImage.js";
@@ -31,36 +33,47 @@ router.post("/signup", signup);
 router.post("/login", login);
 
 // user
-router.post("/user/editProfile", handleVarifyAuth, handleSingleUploadImage, editProfile);
-
-// pdf
-router.post("/pdf", handleSingleUploadPdf, uploadPdf);
-router.post("/vectordb/:pdfId", createVectorDb);
-router.post("/chat/:pdfID/:query", chatbot);
+router.get("/user", handleVarifyAuth, getUserData);
+router.post(
+  "/user/editProfile",
+  handleVarifyAuth,
+  handleSingleUploadImage,
+  editProfile
+);
 
 // audio
-router.post("/audio", handleSingleUploadAudio, handleAudioConversion, uploadAudio);
-router.post("/transcription/:audioId", createTranscription);
+router.get("/audio", handleVarifyAuth, getAllAudio);
+router.post(
+  "/audio",
+  handleVarifyAuth,
+  handleSingleUploadAudio,
+  handleAudioConversion,
+  uploadAudio
+);
+router.post("/transcription/:audioId", handleVarifyAuth, createTranscription);
+router.post("/vectordb/:audioId", handleVarifyAuth, createAudioVectorDb);
 // router.post('/summary/:audioId', createSummary);
-// router.get('/audio/:page', getAllAudio);
 
-// // llm
-// router.get("/llm", async (req, res) => {
-//     console.log("helooooooooooooooooooo");
-//     await create_llm();
-//     res.send("done");
-// });
+// pdf
+router.get("/audio", handleVarifyAuth, getAllPdf);
+router.post("/pdf", handleSingleUploadPdf, uploadPdf);
+router.post("/vectordb/:pdfId", createPdfVectorDb);
+// router.post('/summary/:pdfID', createSummary);
+
+// chat
+router.post("/chat/:sourceId", handleVarifyAuth, chatBot);
+router.get("/chat/:sourceId", handleVarifyAuth, getChat);
 
 const mongoString = process.env.MONGODB_ATLAS_URI || "";
 mongoose.connect(mongoString);
 const db = mongoose.connection;
 db.on("error", (error) => {
-    console.log(error);
+  console.log(error);
 });
 db.once("connected", () => {
-    console.log("Database Connected");
-    app.use("/api", router);
-    app.listen(3000, () => {
-        console.log(`Server Started at ${3000}`);
-    });
+  console.log("Database Connected");
+  app.use("/api", router);
+  app.listen(3000, () => {
+    console.log(`Server Started at ${3000}`);
+  });
 });

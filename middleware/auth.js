@@ -9,7 +9,7 @@ const varifyAuth = async (req, res, next) => {
     ) {
         idToken = req.headers.authorization.split("Bearer ")[1];
     } else {
-        return res.status(403).json({ error: "Unauthorized" });
+        return res.status(401).json({ error: "Unauthorized" });
     }
 
     try {
@@ -20,7 +20,7 @@ const varifyAuth = async (req, res, next) => {
 
         const user = await UserSchema.findById(verified.id);
         if (!user) {
-            return res.status(403).json({ error: "user not found" });
+            return res.status(404).json({ error: "user not found" });
         }
         req.userData = user;
         next();

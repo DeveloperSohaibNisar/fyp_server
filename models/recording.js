@@ -21,6 +21,10 @@ const recordingSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isVectorDatabaseCreated: {
+        type: Boolean,
+        default: false
+    },
     isSummaryCreated: {
         type: Boolean,
         default: false
