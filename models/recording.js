@@ -17,7 +17,7 @@ const recordingSchema = new mongoose.Schema({
         required: true,
         type: String
     },
-    isTranscritonCreated: {
+    isTranscriptionCreated: {
         type: Boolean,
         default: false
     },

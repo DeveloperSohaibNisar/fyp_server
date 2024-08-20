@@ -11,7 +11,7 @@ import {
   createTranscription,
   getAllAudio,
   createAudioVectorDb,
-  // createSummary,
+  createAudioSummary,
 } from "./handler/audio.js";
 import { uploadPdf, createPdfVectorDb, getAllPdf } from "./handler/pdf.js";
 import { chatBot, getChat } from "./handler/chat.js";
@@ -42,7 +42,7 @@ router.post(
 );
 
 // audio
-router.get("/audio", handleVarifyAuth, getAllAudio);
+router.get("/audio/:page", handleVarifyAuth, getAllAudio);
 router.post(
   "/audio",
   handleVarifyAuth,
@@ -51,13 +51,13 @@ router.post(
   uploadAudio
 );
 router.post("/transcription/:audioId", handleVarifyAuth, createTranscription);
-router.post("/vectordb/:audioId", handleVarifyAuth, createAudioVectorDb);
-// router.post('/summary/:audioId', createSummary);
+router.post("/audio/vectordb/:audioId", handleVarifyAuth, createAudioVectorDb);
+router.post('/audio/summary/:audioId', createAudioSummary);
 
 // pdf
-router.get("/audio", handleVarifyAuth, getAllPdf);
+router.get("/pdf", handleVarifyAuth, getAllPdf);
 router.post("/pdf", handleSingleUploadPdf, uploadPdf);
-router.post("/vectordb/:pdfId", createPdfVectorDb);
+router.post("/pdf/vectordb/:pdfId", createPdfVectorDb);
 // router.post('/summary/:pdfID', createSummary);
 
 // chat

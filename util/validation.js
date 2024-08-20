@@ -47,17 +47,6 @@ export const validateLoginData = (data) => {
   };
 };
 
-export const validateUploadAudio = (data) => {
-  let errors = {};
-
-  if (isEmpty(data.name)) errors.name = "Must not be empty";
-
-  return {
-    errors,
-    valid: Object.keys(errors).length === 0 ? true : false,
-  };
-};
-
 export const validateUserDetails = (data) => {
   let errors = {};
 
