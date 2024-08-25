@@ -89,8 +89,8 @@ export const chatBot = async (req, res) => {
 };
 
 export const getChat = async (req, res) => {
-  if (!req.params.sourceId) throw new Error(`Invalid Request`);
   try {
+    if (!req.params.sourceId) throw new Error(`Invalid Request`);
     const result = await ChatSchema.find({
       $and: [{ sourceId: req.params.sourceId }, { userId: req.userData._id }],
     })

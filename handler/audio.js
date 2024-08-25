@@ -5,15 +5,15 @@ import wavefile from "wavefile";
 import RecordingSchema from "../models/recording.js";
 
 export const uploadAudio = async (req, res) => {
-  if (!req.body.name) throw new Error(`Name must be provided`);
-
-  const newRecording = new RecordingSchema({
-    name: req.body.name,
-    audioLength: parseInt(req.body.duration),
-    audioUrl: `http://localhost:3000/uploads/audios/${req.file.filename}`,
-  });
-
   try {
+    if (!req.body.name) throw new Error(`Name must be provided`);
+
+    const newRecording = new RecordingSchema({
+      name: req.body.name,
+      audioLength: parseInt(req.body.duration),
+      audioUrl: `http://localhost:3000/uploads/audios/${req.file.filename}`,
+      userId: req.userData._id,
+    });
     const snapshot = await newRecording.save();
     res.status(200).json(snapshot);
   } catch (err) {
@@ -27,7 +27,7 @@ export const uploadAudio = async (req, res) => {
 export const createTranscription = async (req, res) => {
   try {
     if (!req.params || !req.params.audioId) {
-      return res.status(400).json({ error: "invalid audio id" });
+      return res.status(400).json({ message: "invalid audio id" });
     }
 
     let recording = await RecordingSchema.findById(req.params.audioId);
@@ -35,11 +35,11 @@ export const createTranscription = async (req, res) => {
     if (!recording) {
       return res
         .status(404)
-        .json({ error: `audio with id ${req.params.audioId} not found` });
+        .json({ message: `audio with id ${req.params.audioId} not found` });
     }
 
-    if (recording.isTranscritonCreated) {
-      return res.status(500).json({ error: "transcription already exists" });
+    if (recording.isTranscriptionCreated) {
+      return res.status(500).json({ message: "transcription already exists" });
     }
 
     const transcriber = await pipeline(
@@ -73,7 +73,6 @@ export const createTranscription = async (req, res) => {
       return_timestamps: true,
     });
 
-
     recording.transcriptionData.text = result.text;
     recording.transcriptionData.chunks = result.chunks;
     recording.isTranscriptionCreated = true;
@@ -81,9 +80,9 @@ export const createTranscription = async (req, res) => {
     return res.status(200).json(updatedRecording);
   } catch (err) {
     if (err.message) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ message: err.message });
     }
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ message: err });
   }
 };
 
@@ -120,7 +119,7 @@ export const createAudioSummary = async (req, res) => {
     let recording = await RecordingSchema.findById(req.params.audioId);
 
     if (recording.isSummaryCreated) {
-      return res.status(500).json({ error: "summary already exists" });
+      return res.status(500).json({ message: "summary already exists" });
     }
 
     const summaryText = createSummary(recording.transcriptionData.text);
@@ -131,9 +130,9 @@ export const createAudioSummary = async (req, res) => {
     return res.status(200).json(updatedRecording);
   } catch (err) {
     if (err.message) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ message: err.message });
     }
-    return res.status(500).json({ error: err });
+    return res.status(500).json({ message: err });
   }
 };
 
@@ -144,10 +143,10 @@ export const getAllAudio = async (req, res) => {
 
     const page = req.params.page;
 
-    const result = await RecordingSchema.find()
+    const result = await RecordingSchema.find({ userId: req.userData._id })
       .limit(perPage)
       .skip(perPage * page)
-      .sort("uploadDate");
+      .sort("-uploadDate");
     return res.status(200).json(result);
   } catch (err) {
     if (err.message) {

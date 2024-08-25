@@ -16,7 +16,7 @@ const convertAudio = async (req, res, next) => {
                 fs.unlink(inputFilePath, (err) => { // Clean up input file on error
                     if (err) console.error('Error deleting temporary file:', err);
                 });
-                return res.status(500).json({ error: 'Audio compression failed' });
+                return res.status(500).json({ message: 'Audio compression failed' });
             })
             .on('codecData', (data) => {
                 const parts = data.duration.split(':');

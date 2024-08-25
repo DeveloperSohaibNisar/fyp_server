@@ -53,14 +53,14 @@ export const createPdfVectorDb = async (req, res) => {
 export const getAllPdf = async (req, res) => {
   try {
     const perPage = 10;
+
+    if (!req.params.page) throw new Error(`Invalid Request`);
     const page = req.params.page;
 
     const result = await PdfSchema.find()
       .limit(perPage)
       .skip(perPage * page)
-      .sort({
-        uploadDate: "asc",
-      });
+      .sort("-uploadDate");
     return res.status(200).json(result);
   } catch (err) {
     if (err.message) {

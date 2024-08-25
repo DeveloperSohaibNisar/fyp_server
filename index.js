@@ -50,12 +50,12 @@ router.post(
   handleAudioConversion,
   uploadAudio
 );
-router.post("/transcription/:audioId", handleVarifyAuth, createTranscription);
+router.post("/audio/transcription/:audioId", handleVarifyAuth, createTranscription);
 router.post("/audio/vectordb/:audioId", handleVarifyAuth, createAudioVectorDb);
 router.post('/audio/summary/:audioId', createAudioSummary);
 
 // pdf
-router.get("/pdf", handleVarifyAuth, getAllPdf);
+router.get("/pdf/:page", handleVarifyAuth, getAllPdf);
 router.post("/pdf", handleSingleUploadPdf, uploadPdf);
 router.post("/pdf/vectordb/:pdfId", createPdfVectorDb);
 // router.post('/summary/:pdfID', createSummary);

@@ -35,14 +35,14 @@ function uploadAudio(req, res, next) {
   upload(req, res, (err) => {
     if (err) {
       if (err.message) {
-        return res.status(400).json({ error: err.message }); // Use 400 for bad request errors
+        return res.status(400).json({ message: err.message }); // Use 400 for bad request errors
       }
-      return res.status(500).json({ error: "Internal Server Error" }); // Generic error for unexpected issues
+      return res.status(500).json({ message: "Internal Server Error" }); // Generic error for unexpected issues
     }
 
     // Check if file was uploaded successfully
     if (!req.file) {
-      return res.status(400).json({ error: "Please select a file to upload" });
+      return res.status(400).json({ message: "Please select a file to upload" });
     }
 
     next();
