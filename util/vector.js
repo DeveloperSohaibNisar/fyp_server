@@ -1,4 +1,9 @@
-export const createVectorDb = async (sourceId, text) => {
+import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { MongoClient } from "mongodb";
+import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
+
+const createVectorDb = async (sourceId, text) => {
   try {
     const HUGGINGFACEHUB_API_KEY = process.env.HUGGINGFACEHUB_API_KEY;
     if (!HUGGINGFACEHUB_API_KEY)
@@ -33,3 +38,5 @@ export const createVectorDb = async (sourceId, text) => {
     throw err;
   }
 };
+
+export default createVectorDb;

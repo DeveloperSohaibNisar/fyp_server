@@ -6,15 +6,10 @@ import "dotenv/config";
 
 import { login, signup } from "./handler/auth.js";
 import { editProfile, getUserData } from "./handler/user.js";
-import {
-  uploadAudio,
-  createTranscription,
-  getAllAudio,
-  createAudioVectorDb,
-  createAudioSummary,
-} from "./handler/audio.js";
-import { uploadPdf, createPdfVectorDb, getAllPdf } from "./handler/pdf.js";
-import { chatBot, getChat } from "./handler/chat.js";
+import { uploadAudio, getAllAudio } from "./handler/audio.js";
+import { uploadPdf, getAllPdf } from "./handler/pdf.js";
+import { chatBot, getChats } from "./handler/chat.js";
+import { getAllNotes, updateNote, uploadNote } from "./handler/note.js";
 
 import handleSingleUploadAudio from "./middleware/uploadAudio.js";
 import handleSingleUploadImage from "./middleware/uploadImage.js";
@@ -50,19 +45,19 @@ router.post(
   handleAudioConversion,
   uploadAudio
 );
-router.post("/audio/transcription/:audioId", handleVarifyAuth, createTranscription);
-router.post("/audio/vectordb/:audioId", handleVarifyAuth, createAudioVectorDb);
-router.post('/audio/summary/:audioId', createAudioSummary);
 
 // pdf
 router.get("/pdf/:page", handleVarifyAuth, getAllPdf);
-router.post("/pdf", handleSingleUploadPdf, uploadPdf);
-router.post("/pdf/vectordb/:pdfId", createPdfVectorDb);
-// router.post('/summary/:pdfID', createSummary);
+router.post("/pdf", handleVarifyAuth, handleSingleUploadPdf, uploadPdf);
 
 // chat
+router.get("/chat/:sourceId", handleVarifyAuth, getChats);
 router.post("/chat/:sourceId", handleVarifyAuth, chatBot);
-router.get("/chat/:sourceId", handleVarifyAuth, getChat);
+
+// chat
+router.get("/note/:page", handleVarifyAuth, getAllNotes);
+router.post("/note", handleVarifyAuth, uploadNote);
+router.patch("/note", handleVarifyAuth, updateNote);
 
 const mongoString = process.env.MONGODB_ATLAS_URI || "";
 mongoose.connect(mongoString);
@@ -73,7 +68,7 @@ db.on("error", (error) => {
 db.once("connected", () => {
   console.log("Database Connected");
   app.use("/api", router);
-  app.listen(3000, () => {
+  app.listen(3000, "192.168.100.6", () => {
     console.log(`Server Started at ${3000}`);
   });
 });

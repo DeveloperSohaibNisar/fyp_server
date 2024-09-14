@@ -45,18 +45,20 @@ export const chatBot = async (req, res) => {
 
     const llm = new HuggingFaceInference({
       model: "mistralai/Mistral-7B-Instruct-v0.3",
-      temperature: 0.8,
-      topK: 50,
+      temperature: 0.7,
+      maxTokens: 1000,
     });
 
     const template = `
-   Answer the user question based on the given context.     
-   If you don't know the answer, just say that you don't know, don't try to make up an answer.
-   
-   Context: {context}
-   Question: {question}
-   Answer: 
-   `;
+Answer the user question exclusively based on the provided context. 
+If the answer cannot be deduced from the context, state that you don't know it. 
+Do not attempt to speculate or fabricate information.
+Make the answer as concise as possible.
+
+Context: {context}
+Question: {question}
+Answer:
+`;
 
     const customRagPrompt = PromptTemplate.fromTemplate(template);
 
@@ -71,7 +73,7 @@ export const chatBot = async (req, res) => {
       question: req.body.query,
       context,
     });
-    // res.send(result);
+
     const newChat = new ChatSchema({
       query: req.body.query,
       reply: result,
@@ -88,16 +90,13 @@ export const chatBot = async (req, res) => {
   }
 };
 
-export const getChat = async (req, res) => {
+export const getChats = async (req, res) => {
   try {
     if (!req.params.sourceId) throw new Error(`Invalid Request`);
     const result = await ChatSchema.find({
       $and: [{ sourceId: req.params.sourceId }, { userId: req.userData._id }],
-    })
-      .populate("sourceId userId")
-      .sort({
-        uploadDate: "asc",
-      });
+    }).sort({ createdAt: 1 });
+
     return res.status(200).json(result);
   } catch (err) {
     if (err.message) {

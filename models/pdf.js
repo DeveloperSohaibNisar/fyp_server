@@ -1,34 +1,35 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
-const pdfSchema = new mongoose.Schema({
+const pdfSchema = new mongoose.Schema(
+  {
     name: {
-        required: true,
-        type: String
-    },
-    uploadDate: {
-        type: Date,
-        default: Date.now()
+      required: true,
+      type: String,
     },
     numpages: {
-        required: true,
-        type: Number
+      required: true,
+      type: Number,
     },
     pdfUrl: {
-        required: true,
-        type: String
+      required: true,
+      type: String,
     },
-    isVectorDatabaseCreated: {
-        type: Boolean,
-        default: false
+    summaryData: {
+      title: { type: String, required: true },
+      summary: { type: String, required: true },
+      additionalInfo: {
+        mainPoints: [String],
+        actionItems: [String],
+        followUpQuestions: [String],
+      },
     },
-    isSummaryCreated: {
-        type: Boolean,
-        default: false
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
     },
-    summaryText: {
-        type: String,
-        default: null
-    }
-})
+  },
+  { timestamps: true }
+);
 
-export default mongoose.model('pdf', pdfSchema)
+export default mongoose.model("pdf", pdfSchema);

@@ -1,20 +1,32 @@
-import { createSummary } from "../util/summary.js";
-import { pipeline } from "@xenova/transformers";
+import { pipeline, env } from "@xenova/transformers";
 import wavefile from "wavefile";
-
+import createSummary from "../util/summaryAudio.js";
+import createVectorDb from "../util/vector.js";
 import RecordingSchema from "../models/recording.js";
+
+env.backends.onnx.logSeverityLevel = 3;
 
 export const uploadAudio = async (req, res) => {
   try {
     if (!req.body.name) throw new Error(`Name must be provided`);
 
+    const audioUrl = `http://192.168.100.6:3000/uploads/audios/${req.file.filename}`;
+
+    const transcriptionData = await createTranscription(audioUrl);
+
+    const summaryData = await createSummary(transcriptionData.text);
+
     const newRecording = new RecordingSchema({
       name: req.body.name,
       audioLength: parseInt(req.body.duration),
-      audioUrl: `http://localhost:3000/uploads/audios/${req.file.filename}`,
       userId: req.userData._id,
+      transcriptionData,
+      audioUrl,
+      summaryData,
     });
+
     const snapshot = await newRecording.save();
+    createVectorDb(snapshot._id, transcriptionData.text);
     res.status(200).json(snapshot);
   } catch (err) {
     if (err.message) {
@@ -24,31 +36,15 @@ export const uploadAudio = async (req, res) => {
   }
 };
 
-export const createTranscription = async (req, res) => {
+const createTranscription = async (audioUrl) => {
   try {
-    if (!req.params || !req.params.audioId) {
-      return res.status(400).json({ message: "invalid audio id" });
-    }
-
-    let recording = await RecordingSchema.findById(req.params.audioId);
-
-    if (!recording) {
-      return res
-        .status(404)
-        .json({ message: `audio with id ${req.params.audioId} not found` });
-    }
-
-    if (recording.isTranscriptionCreated) {
-      return res.status(500).json({ message: "transcription already exists" });
-    }
-
     const transcriber = await pipeline(
       "automatic-speech-recognition",
       "Xenova/whisper-small.en"
     );
     // Load audio data
     let buffer = Buffer.from(
-      await fetch(recording.audioUrl).then((x) => x.arrayBuffer())
+      await fetch(audioUrl).then((x) => x.arrayBuffer())
     );
     // Read .wav file and convert it to required format
     let wav = new wavefile.WaveFile(buffer);
@@ -73,66 +69,9 @@ export const createTranscription = async (req, res) => {
       return_timestamps: true,
     });
 
-    recording.transcriptionData.text = result.text;
-    recording.transcriptionData.chunks = result.chunks;
-    recording.isTranscriptionCreated = true;
-    const updatedRecording = await recording.save();
-    return res.status(200).json(updatedRecording);
-  } catch (err) {
-    if (err.message) {
-      return res.status(500).json({ message: err.message });
-    }
-    return res.status(500).json({ message: err });
-  }
-};
-
-export const createAudioVectorDb = async (req, res) => {
-  try {
-    if (!req.params.audioId) throw new Error(`Invalid Request`);
-
-    let audioSnap = await RecordingSchema.findById(req.params.audioId);
-    if (!audioSnap) {
-      return res
-        .status(404)
-        .json({ message: `audio with id ${req.params.audioId} not found` });
-    }
-    if (!audioSnap.isTranscritonCreated) {
-      return res.status(404).json({
-        message: `audio transcription with id ${req.params.audioId} not found`,
-      });
-    }
-
-    createVectorDb(req.params.audioId, audioSnap.transcriptionData.text);
-
-    audioSnap.isVectorDatabaseCreated = true;
-    const updatedRecording = await audioSnap.save();
-    return res.status(200).json(updatedRecording);
-  } catch (err) {
-    if (err.message) {
-      return res.status(500).json({ message: err.message });
-    }
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-export const createAudioSummary = async (req, res) => {
-  try {
-    let recording = await RecordingSchema.findById(req.params.audioId);
-
-    if (recording.isSummaryCreated) {
-      return res.status(500).json({ message: "summary already exists" });
-    }
-
-    const summaryText = createSummary(recording.transcriptionData.text);
-
-    recording.summaryText = summaryText;
-    recording.isSummaryCreated = true;
-    const updatedRecording = await recording.save();
-    return res.status(200).json(updatedRecording);
-  } catch (err) {
-    if (err.message) {
-      return res.status(500).json({ message: err.message });
-    }
-    return res.status(500).json({ message: err });
+    return result;
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -146,7 +85,7 @@ export const getAllAudio = async (req, res) => {
     const result = await RecordingSchema.find({ userId: req.userData._id })
       .limit(perPage)
       .skip(perPage * page)
-      .sort("-uploadDate");
+      .sort({ createdAt: -1 });
     return res.status(200).json(result);
   } catch (err) {
     if (err.message) {
