@@ -15,21 +15,21 @@ const createSummary = async (text) => {
     });
 
     const summaryTemplate = `
-    You are an expert in summarizing audio transcriptions.
-    Below is the transcription text of the audio:
+    You are an expert in summarizing text.
+    Below is the text:
 
     -----------------------
-    Transcription Text: 
+    Text: 
     "${text}"
     -----------------------
 
     Your goal is to:
-    Write a Title for the transcript that is under 15 words.
-    Write a summary of the provided transcript.
+    Write a Title for the text that is under 15 words.
+    Write a summary of the provided text.
     Then write: "Additional Info".
-    Then return a list of the main points in the provided transcript. Then return a list of action items. Then return a list of follow up questions.
+    Then return a list of the main points in the provided text. Then return a list of action items. Then return a list of follow up questions.
     Limit each list item to be less or at most 100 words, and return less or no more than 5 points per list you can also return empty lists.
-    If the transcription is too small just return empty lists of main points, action items and follow up questions.
+    If the text is too small just return empty lists of main points, action items and follow up questions.
 
     You must always only output a JSON object containing following key structure do not pass any other text or symbols.
       {
@@ -37,6 +37,8 @@ const createSummary = async (text) => {
         "summary": "Brief summary of the pdf",
         "additionalInfo": {
           "mainPoints": [...],
+          "actionItems": [...],
+          "followUpQuestions": [...]
         }    
       }   
     `;
